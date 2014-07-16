@@ -4,6 +4,8 @@
 #include <random>
 #include <chrono>
 #include <thread>
+#include <sstream>
+#include <fstream>
 #include <aalib.h>
 
 template <typename T, typename F>
@@ -82,15 +84,30 @@ void render_board(aa_context* ctx, Board const &board, int color)
   aa_flush(ctx);
 }
 
+#include <json/json.h>
+
 int main()
 {
+  Json::Value root;
+  Json::Reader reader;
+  std::ifstream config("config.json");
+  std::ostringstream strm_config;
+  strm_config<< config.rdbuf();
+  
   // configure
   int delay= 100; // 100ms
-  int color= 108; // 20-255
+  int color= 100; // 20-255
   int dilution= 5; // 1-100
+  if(reader.parse(strm_config.str(), root))
+  {
+    delay= root["delay"].asInt();
+    color= root["color"].asInt();
+    dilution= root["dilution"].asInt();
+  }
 
   // initialize graphics
   auto ctx= gc(aa_autoinit(&aa_defparams), aa_close);
+  // initialize keyboard handling
   aa_autoinitkbd(ctx.get(), 0);
   
   // initialize board
