@@ -86,7 +86,7 @@ int main()
 {
   // configure
   int delay= 100; // 100ms
-  int color= 255; // 20-255
+  int color= 108; // 20-255
   int dilution= 5; // 1-100
 
   // initialize graphics
