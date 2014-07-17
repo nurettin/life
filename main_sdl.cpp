@@ -3,6 +3,7 @@
 #include <fstream>
 #include <SDL2/SDL.h>
 #include "board.h"
+#include "config.h"
 
 void render_board(SDL_Renderer* ctx, Board const &board, int color)
 {
@@ -19,26 +20,9 @@ void render_board(SDL_Renderer* ctx, Board const &board, int color)
   SDL_RenderPresent(ctx);
 }
 
-#include <json/json.h>
-
 int main()
 {
-  Json::Value root;
-  Json::Reader reader;
-  std::ifstream config("config.json");
-  std::ostringstream strm_config;
-  strm_config<< config.rdbuf();
-  
-  // configure
-  int delay= 100; // 100ms
-  int color= 100; // 20-255
-  int dilution= 50; // 1-100
-  if(reader.parse(strm_config.str(), root))
-  {
-    delay= root["delay"].asInt();
-    color= root["color"].asInt();
-    dilution= root["dilution"].asInt();
-  }
+  Config config;
 
   // initialize graphics
   SDL_Init(SDL_INIT_EVERYTHING);
@@ -49,10 +33,10 @@ int main()
   int width= 0, height= 0;
   SDL_GetWindowSize(win, &width, &height);
   Board board(width, height);
-  board.do_seed(dilution); // decoupled from initialization to allow unit testing
+  board.do_seed(config.dilution); // decoupled from initialization to allow unit testing
  
   SDL_Event e;
-  for(bool run= true; run; SDL_Delay(delay))
+  for(bool run= true; run; SDL_Delay(config.delay))
   {
     while(SDL_PollEvent(&e))
       if(e.type== SDL_KEYDOWN|| e.type== SDL_QUIT)
@@ -60,7 +44,7 @@ int main()
         run= false;
         break;
       }
-    render_board(rend, board, color);
+    render_board(rend, board, config.color);
     board.do_next();
   }
 

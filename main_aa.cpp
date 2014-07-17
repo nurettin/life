@@ -5,6 +5,7 @@
 #include <fstream>
 #include <aalib.h>
 #include "board.h"
+#include "config.h"
 
 void render_board(aa_context* ctx, Board const &board, int color)
 {
@@ -17,26 +18,10 @@ void render_board(aa_context* ctx, Board const &board, int color)
   aa_flush(ctx);
 }
 
-#include <json/json.h>
-
 int main()
 {
-  Json::Value root;
-  Json::Reader reader;
-  std::ifstream config("config.json");
-  std::ostringstream strm_config;
-  strm_config<< config.rdbuf();
-  
   // configure
-  int delay= 100; // 100ms
-  int color= 100; // 20-255
-  int dilution= 5; // 1-100
-  if(reader.parse(strm_config.str(), root))
-  {
-    delay= root["delay"].asInt();
-    color= root["color"].asInt();
-    dilution= root["dilution"].asInt();
-  }
+  Config config;
 
   // initialize graphics
   auto ctx= gc(aa_autoinit(&aa_defparams), aa_close);
@@ -45,13 +30,13 @@ int main()
   
   // initialize board
   Board board(aa_scrwidth(ctx.get()), aa_scrheight(ctx.get()));
-  board.do_seed(dilution); // decoupled from initialization to allow unit testing
+  board.do_seed(config.dilution); // decoupled from initialization to allow unit testing
   
   while(aa_getevent(ctx.get(), 0)== AA_NONE)
   {
-    render_board(ctx.get(), board, color);
+    render_board(ctx.get(), board, config.color);
     board.do_next();
-    std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+    std::this_thread::sleep_for(std::chrono::milliseconds(config.delay));
   }
 }
 
